@@ -34,7 +34,7 @@ class FuncionarioServiceTest {
         BDDMockito.given(funcionarioRepository?.findByCpf(cpf)).willReturn(funcionario())
         BDDMockito.given(funcionarioRepository?.findByEmail(email)).willReturn(funcionario())
         BDDMockito.given(funcionarioRepository?.save(Mockito.any(Funcionario::class.java))).willReturn(funcionario())
-        //BDDMockito.given(funcionarioRepository?.findByIdOrNull(id)).willReturn(funcionario())
+        BDDMockito.given(funcionarioRepository?.findById(id)).willReturn(Optional.of(funcionario()))
 
     }
 
@@ -50,13 +50,12 @@ class FuncionarioServiceTest {
         Assertions.assertNotNull(funcionario)
     }
 
-    /*
     @Test
     fun testBuscarFuncionarioPorId() {
         val funcionario: Funcionario? = funcionarioService?.buscarFuncionarioPorId(id)
         Assertions.assertNotNull(funcionario)
     }
-    */
+
 
     @Test
     fun testAdicionarFuncionario() {

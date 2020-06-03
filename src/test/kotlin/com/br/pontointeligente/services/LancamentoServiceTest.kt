@@ -31,7 +31,7 @@ class LancamentoServiceTest {
     @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
-        //BDDMockito.given(lancamentoRepository?.findByIdOrNull(id)).willReturn(lancamento())
+        BDDMockito.given(lancamentoRepository?.findById(id)).willReturn(Optional.of(lancamento()))
         BDDMockito.given<Page<Lancamento>>(lancamentoRepository?.findByFuncionarioId(id, PageRequest.of(0, 10)))
                 .willReturn(PageImpl(ArrayList<Lancamento>()))
         BDDMockito.given(lancamentoRepository?.save(Mockito.any(Lancamento::class.java))).willReturn(lancamento())
@@ -44,13 +44,12 @@ class LancamentoServiceTest {
 
     }
 
-    /*
     @Test
     fun testBuscarLancamentoPorId() {
         val lancamento:Lancamento? = lancamentoService?.buscarLancamentoPorId(id)
         Assertions.assertNotNull(lancamento)
     }
-    */
+
 
     @Test
     fun testAdicionarLancamento() {

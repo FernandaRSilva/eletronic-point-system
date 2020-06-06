@@ -8,6 +8,9 @@ import com.br.pontointeligente.response.Response
 import com.br.pontointeligente.services.FuncionarioService
 import com.br.pontointeligente.services.LancamentoService
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult
 import org.springframework.validation.ObjectError
@@ -22,6 +25,40 @@ class LancamentoController (val lancamentoService: LancamentoService, val funcio
 
     @Value("\${paginacao.qtd_por_pagina}")
     val qtdPorPagina: Int = 15
+
+    @GetMapping("/{id}")
+    fun buscarLancamentoPorId(@PathVariable("id") id: String): ResponseEntity<Response<LancamentoDTO>> {
+        val response: Response<LancamentoDTO> = Response<LancamentoDTO>()
+        val lancamento: Lancamento? = lancamentoService.buscarLancamentoPorId(id)
+
+        if (lancamento == null) {
+            response.erros.add("Lancamento não encontrado para o id $id")
+            return ResponseEntity.badRequest().body(response)
+        }
+
+        response.data = converterLancamentoDTO(lancamento)
+        return ResponseEntity.ok(response)
+
+    }
+
+    @GetMapping("/funcionario/{funcionarioId}")
+    fun buscarLancamentosPorFuncionario(@PathVariable("funcionarioId") funcionarioId: String,
+                                        @RequestParam(value = "pag", defaultValue = "0") pag: Int,
+                                        @RequestParam(value = "ord", defaultValue = "id") ord: String,
+                                        @RequestParam(value = "dir", defaultValue = "DESC") dir: String):
+            ResponseEntity<Response<Page<LancamentoDTO>>> {
+
+        val response: Response<Page<LancamentoDTO>> = Response<Page<LancamentoDTO>>()
+
+        val pageRequest: PageRequest = PageRequest.of(pag, qtdPorPagina, Sort.Direction.valueOf(dir), ord)
+        val lancamentos: Page<Lancamento> = lancamentoService.buscarLancamentosPorFuncionarioId(funcionarioId, pageRequest)
+
+        val lancamentosDTO: Page<LancamentoDTO> = lancamentos.map { lancamento -> converterLancamentoDTO(lancamento) }
+
+        response.data = lancamentosDTO
+        return ResponseEntity.ok(response)
+
+    }
 
     @PostMapping
     fun adicionarLancamento(@Valid @RequestBody lancamentoDTO: LancamentoDTO, result: BindingResult): ResponseEntity<Response<LancamentoDTO>> {
@@ -38,6 +75,40 @@ class LancamentoController (val lancamentoService: LancamentoService, val funcio
         lancamentoService.adicionarLancamento(lancamento)
         response.data = converterLancamentoDTO(lancamento)
         return ResponseEntity.ok(response)
+    }
+
+    @PutMapping("/{id}")
+    fun atualizarLancamento(@PathVariable("id") id: String, @Valid @RequestBody lancamentoDTO: LancamentoDTO,
+                            result: BindingResult): ResponseEntity<Response<LancamentoDTO>> {
+
+        val response: Response<LancamentoDTO> = Response<LancamentoDTO>()
+        validarFuncionario(lancamentoDTO, result)
+        lancamentoDTO.id = id
+        val lancamento: Lancamento = converterDTOParaLancamento(lancamentoDTO, result)
+
+        if (result.hasErrors()) {
+            result.allErrors.forEach { erro -> erro.defaultMessage?.let {response.erros.add(it)}}
+            return ResponseEntity.badRequest().body(response)
+        }
+
+        lancamentoService.adicionarLancamento(lancamento)
+        response.data = converterLancamentoDTO(lancamento)
+        return ResponseEntity.ok(response)
+
+    }
+
+    @DeleteMapping("/{id}")
+    fun deletarLancamento(@PathVariable("id") id: String): ResponseEntity<Response<String>> {
+        val response: Response<String> = Response<String>()
+        val lancamento: Lancamento? = lancamentoService.buscarLancamentoPorId(id)
+
+        if (lancamento == null) {
+            response.erros.add("Erro ao remover lançamento. Registro não encontrado para o id $id")
+            return ResponseEntity.badRequest().body(response)
+        }
+
+        lancamentoService.removerLancamento(id)
+        return ResponseEntity.ok(Response<String>())
     }
 
     private fun validarFuncionario(lancamentoDTO: LancamentoDTO, result: BindingResult) {

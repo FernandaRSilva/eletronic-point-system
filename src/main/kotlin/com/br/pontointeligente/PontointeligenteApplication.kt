@@ -20,7 +20,7 @@ class PontointeligenteApplication(val empresaRepository: EmpresaRepository,
 	override fun run(vararg args: String?) {
 		empresaRepository.deleteAll()
 		funcionarioRepository.deleteAll()
-		lancamentoRepository.delete()
+		lancamentoRepository.deleteAll()
 
 
 		val empresa: Empresa = Empresa("Empresa", "10443887000146")

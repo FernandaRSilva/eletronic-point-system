@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.BindingResult
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
@@ -98,6 +99,7 @@ class LancamentoController (val lancamentoService: LancamentoService, val funcio
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')") //para remover é necessário que seja ADMIN
     fun deletarLancamento(@PathVariable("id") id: String): ResponseEntity<Response<String>> {
         val response: Response<String> = Response<String>()
         val lancamento: Lancamento? = lancamentoService.buscarLancamentoPorId(id)
